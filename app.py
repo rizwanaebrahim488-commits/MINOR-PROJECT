@@ -6,7 +6,7 @@ COMPLETE STUDENT ATTENDANCE & PROGRESS TRACKER
 - View Reports
 - SMS Notifications (optional)
 """
-
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
