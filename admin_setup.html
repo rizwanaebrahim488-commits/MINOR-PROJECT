@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Setup - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-header">
+            <h2>⚙️ Initial Setup</h2>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <p style="margin-bottom: 30px; color: #666;">Create demo accounts to test the system:</p>
+            
+            <!-- Create Admin/Teacher -->
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="margin-top: 0;">👨‍🏫 Create Teacher/Admin Account</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="create_admin">
+                    <button type="submit" class="btn btn-primary btn-block">Create Admin (admin/admin123)</button>
+                </form>
+            </div>
+            
+            <!-- Create Student -->
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="margin-top: 0;">👨‍🎓 Create Student Account</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="create_student">
+                    
+                    <div class="form-group">
+                        <input type="text" name="roll_number" placeholder="Roll Number" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="full_name" placeholder="Full Name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="phone" placeholder="Phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <select name="class_name" required>
+                            <option value="">Select Class</option>
+                            <option value="CSE-A">CSE-A</option>
+                            <option value="CSE-B">CSE-B</option>
+                            <option value="ECE-A">ECE-A</option>
+                            <option value="ECE-B">ECE-B</option>
+                            <option value="ME-A">ME-A</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary btn-block">Create Student</button>
+                </form>
+            </div>
+            
+            <!-- Create Parent -->
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+                <h3 style="margin-top: 0;">👨‍👩‍👧 Create Parent Account</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="create_parent">
+                    
+                    <div class="form-group">
+                        <input type="text" name="full_name" placeholder="Full Name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="phone" placeholder="Phone Number" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary btn-block">Create Parent</button>
+                </form>
+            </div>
+            
+            <hr style="margin: 30px 0;">
+            
+            <p style="text-align: center; color: #666;">
+                After creating accounts, go to <a href="{{ url_for('login') }}" style="color: #3498db;">Login Page</a> to access the app.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.btn-block {
+    width: 100%;
+}
+</style>
+{% endblock %}
