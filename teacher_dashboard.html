@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>👨‍🏫 Welcome, {{ teacher.full_name }}!</h1>
+        <p class="subtitle">Department: <strong>{{ teacher.department }}</strong> | Subject: <strong>{{ teacher.subject }}</strong></p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Students</h3>
+                <div class="stat-value">{{ total_students }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>⚙️ Quick Actions</h2>
+        </div>
+        <div class="card-body">
+            <div class="quick-actions-grid">
+                <a href="{{ url_for('mark_attendance') }}" class="action-btn">
+                    <div class="action-icon">✅</div>
+                    <div class="action-text">
+                        <h3>Mark Attendance</h3>
+                        <p>Record student attendance</p>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('update_progress') }}" class="action-btn">
+                    <div class="action-icon">📝</div>
+                    <div class="action-text">
+                        <h3>Update Progress</h3>
+                        <p>Add marks and comments</p>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('reports') }}" class="action-btn">
+                    <div class="action-icon">📊</div>
+                    <div class="action-text">
+                        <h3>View Reports</h3>
+                        <p>See attendance & marks report</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

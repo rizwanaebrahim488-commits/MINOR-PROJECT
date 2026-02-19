@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>📊 Class Reports</h1>
+        <p class="subtitle">Attendance & Progress Summary for {{ current_user.teacher.department }}</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 Student Report Summary</h2>
+        </div>
+        <div class="table-responsive">
+            {% if report_data %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th>Attendance %</th>
+                        <th>Avg Marks %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                    <tr>
+                        <td><strong>{{ item.student.roll_number }}</strong></td>
+                        <td>{{ item.student.full_name }}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ item.attendance }}%; background: {% if item.attendance >= 75 %}#2ecc71{% elif item.attendance >= 60 %}#f39c12{% else %}#e74c3c{% endif %};">
+                                    {{ item.attendance }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ item.avg_marks }}%; background: #3498db;">
+                                    {{ item.avg_marks }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.attendance >= 75 and item.avg_marks >= 60 %}
+                                <span class="badge success">✅ Good</span>
+                            {% elif item.attendance < 60 or item.avg_marks < 40 %}
+                                <span class="badge danger">❌ At Risk</span>
+                            {% else %}
+                                <span class="badge warning">⚠️ Monitor</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding: 20px; text-align: center; color: #888;">
+                <p>No student data available</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Students</h3>
+                <div class="stat-value">{{ report_data | length }}</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+                <h3>Good Attendance</h3>
+                <div class="stat-value">
+                    {% set good = report_data | selectattr('attendance', '>=', 75) | list | length %}
+                    {{ good }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-content">
+                <h3>At Risk</h3>
+                <div class="stat-value">
+                    {% set at_risk = report_data | selectattr('attendance', '<', 60) | list | length %}
+                    {{ at_risk }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

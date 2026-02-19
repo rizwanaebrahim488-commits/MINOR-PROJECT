@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Parent Dashboard - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>👨‍👩‍👧 Parent Portal</h1>
+        <p class="subtitle">View your child's attendance and progress</p>
+    </div>
+    
+    {% if student_data %}
+    <div class="cards-grid">
+        {% for item in student_data %}
+        <div class="card student-card">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2c3e50);">
+                <h3 style="color: white; margin: 0;">👨‍🎓 {{ item.student.full_name }}</h3>
+                <p style="color: #ecf0f1; margin: 5px 0 0; font-size: 14px;">Roll No: {{ item.student.roll_number }}</p>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <p style="font-size: 13px; color: #888; margin: 0 0 5px;">Attendance</p>
+                        <div style="font-size: 28px; font-weight: bold; color: {% if item.attendance >= 75 %}#2ecc71{% elif item.attendance >= 60 %}#f39c12{% else %}#e74c3c{% endif %};">
+                            {{ "%.1f" | format(item.attendance) }}%
+                        </div>
+                    </div>
+                    <div>
+                        <p style="font-size: 13px; color: #888; margin: 0 0 5px;">Avg Marks</p>
+                        <div style="font-size: 28px; font-weight: bold; color: #3498db;">
+                            {{ "%.1f" | format(item.avg_marks) }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('parent_view_student', student_id=item.student.id) }}" class="btn btn-primary btn-block">
+                    📊 View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 40px;">
+        <p style="font-size: 18px; color: #888;">📭 No students linked to your account</p>
+        <p style="color: #888;">Contact administrator to link your child</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.student-card {
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.student-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

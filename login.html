@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Attendance Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>📚 Attendance Tracker</h1>
+                <p class="subtitle">College Attendance & Progress System</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="login-form">
+                <div class="form-group">
+                    <label for="username">👤 Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">🔑 Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+            
+            <div class="login-info">
+                <h3>🔓 Demo Accounts (First Time Only)</h3>
+                <p><strong>👨‍🏫 Teacher:</strong></p>
+                <code>Username: admin | Password: admin123</code>
+                
+                <p style="margin-top: 12px;"><strong>👨‍🎓 Student/Parent:</strong></p>
+                <code>Use Register button below to create account</code>
+            </div>
+            
+            <hr style="margin: 20px 0; opacity: 0.3;">
+            
+            <div class="register-section">
+                <p>Don't have an account?</p>
+                <a href="{{ url_for('register') }}" class="btn btn-secondary btn-block">Create New Account</a>
+            </div>
+            
+            <div class="setup-section">
+                <p style="font-size: 12px; color: #888; text-align: center; margin-top: 15px;">
+                    First time? <a href="{{ url_for('admin_setup') }}" style="color: #3498db;">Setup Demo Data</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

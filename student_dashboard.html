@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h1>👨‍🎓 Welcome, {{ student.full_name }}!</h1>
+        <p class="subtitle">Roll No: <strong>{{ student.roll_number }}</strong> | Class: <strong>{{ student.class_name }}</strong></p>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <h3>Attendance (30 Days)</h3>
+                <div class="stat-value">{{ "%.1f" | format(attendance_30) }}%</div>
+                <p>
+                    {% if attendance_30 >= 75 %}
+                        <span class="badge success">✅ Good</span>
+                    {% elif attendance_30 >= 60 %}
+                        <span class="badge warning">⚠️ Needs Improvement</span>
+                    {% else %}
+                        <span class="badge danger">❌ Critical</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <h3>Attendance (60 Days)</h3>
+                <div class="stat-value">{{ "%.1f" | format(attendance_60) }}%</div>
+                <p>
+                    {% if attendance_60 >= 75 %}
+                        <span class="badge success">✅ Good</span>
+                    {% else %}
+                        <span class="badge warning">⚠️ Monitor</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Attendance Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 Recent Attendance (Last 10 Days)</h2>
+        </div>
+        <div class="table-responsive">
+            {% if recent_attendance %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Teacher</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in recent_attendance %}
+                    <tr>
+                        <td>{{ attendance.date.strftime('%d-%m-%Y') }}</td>
+                        <td>
+                            {% if attendance.present %}
+                                <span class="badge success">✅ Present</span>
+                            {% else %}
+                                <span class="badge danger">❌ Absent</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ attendance.teacher.full_name }}</td>
+                        <td>{{ attendance.remarks or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding: 20px; text-align: center; color: #888;">
+                <p>📭 No attendance records yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Progress Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📚 Recent Progress (Last 5 Records)</h2>
+        </div>
+        <div class="table-responsive">
+            {% if recent_progress %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Assignment</th>
+                        <th>Marks</th>
+                        <th>Percentage</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for progress in recent_progress %}
+                    <tr>
+                        <td>{{ progress.date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ progress.assignment_name }}</td>
+                        <td>{{ progress.marks_obtained }} / {{ progress.total_marks }}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ progress.percentage }}%">
+                                    {{ "%.1f" | format(progress.percentage) }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ progress.comments or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding: 20px; text-align: center; color: #888;">
+                <p>📭 No progress records yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📊 Attendance Chart (30 Days)</h2>
+        </div>
+        <canvas id="attendanceChart" style="max-height: 300px;"></canvas>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>📈 Progress Chart</h2>
+        </div>
+        <canvas id="progressChart" style="max-height: 300px;"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Attendance Chart
+fetch('/api/student-attendance-chart')
+    .then(res => res.json())
+    .then(data => {
+        if(data.labels && data.labels.length > 0) {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Attendance Status',
+                        data: data.data,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: data.data.map(v => v === 1 ? '#2ecc71' : '#e74c3c')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+        }
+    });
+
+// Progress Chart
+fetch('/api/progress-marks-chart')
+    .then(res => res.json())
+    .then(data => {
+        if(data.labels && data.labels.length > 0) {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Percentage (%)',
+                        data: data.data,
+                        backgroundColor: [
+                            '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6',
+                            '#1abc9c', '#34495e', '#e67e22', '#c0392b', '#d35400'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

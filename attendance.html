@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>✅ Mark Attendance</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="form-container">
+                <div class="form-group">
+                    <label for="date">📅 Select Date</label>
+                    <input type="date" id="date" name="date" required value="{{ today }}">
+                </div>
+                
+                <div style="margin-top: 30px; margin-bottom: 20px;">
+                    <h3>📚 Students in {{ current_user.teacher.department }}</h3>
+                    <hr>
+                </div>
+                
+                {% if students %}
+                <div class="attendance-list">
+                    {% for student in students %}
+                    <div class="attendance-item">
+                        <div class="student-info">
+                            <h4>{{ student.full_name }}</h4>
+                            <p>Roll No: {{ student.roll_number }}</p>
+                        </div>
+                        
+                        <div class="attendance-input">
+                            <label>
+                                <input type="checkbox" name="attendance_{{ student.id }}" class="attendance-checkbox">
+                                <span class="checkbox-label">Present ✅</span>
+                            </label>
+                        </div>
+                        
+                        <div class="remarks-input">
+                            <input type="text" name="remarks_{{ student.id }}" placeholder="Remarks (optional)" class="form-input">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 30px;">💾 Save Attendance</button>
+                {% else %}
+                <div style="padding: 20px; text-align: center; color: #888;">
+                    <p>No students in your department</p>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.attendance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.attendance-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.student-info h4 {
+    margin: 0 0 5px;
+    color: #2c3e50;
+}
+
+.student-info p {
+    margin: 0;
+    font-size: 13px;
+    color: #888;
+}
+
+.attendance-input label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.attendance-input input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.remarks-input .form-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .attendance-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}

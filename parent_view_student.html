@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}View Student - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>👨‍🎓 {{ student.full_name }}</h1>
+        <p class="subtitle">Class: {{ student.class_name }} | Roll: {{ student.roll_number }}</p>
+        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary" style="margin-top: 10px;">⬅️ Back to Dashboard</a>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <h3>Overall Attendance</h3>
+                <div class="stat-value">{{ "%.1f" | format(attendance_percentage) }}%</div>
+                <p>
+                    {% if attendance_percentage >= 75 %}
+                        <span class="badge success">✅ Good</span>
+                    {% elif attendance_percentage >= 60 %}
+                        <span class="badge warning">⚠️ Needs Improvement</span>
+                    {% else %}
+                        <span class="badge danger">❌ Critical</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <h3>Average Marks</h3>
+                <div class="stat-value">{{ "%.1f" | format(average_marks) }}%</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance Records -->
+    <div class="card">
+        
