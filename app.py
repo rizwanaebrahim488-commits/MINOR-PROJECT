@@ -1,30 +1,26 @@
 """
 COMPLETE STUDENT ATTENDANCE & PROGRESS TRACKER
-- Login for Student, Teacher, Parent
-- Mark Attendance
-- Update Progress
-- View Reports
-- SMS Notifications (optional)
+Student, Teacher, Parent Login & Management System
 """
-from dotenv import load_dotenv
+
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from functools import wraps
 import os
 
-# Load config
+# Load configuration
 from config import DevelopmentConfig
 
+# Initialize Flask
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 
-# Database
+# Initialize Database
 db = SQLAlchemy(app)
 
-# Login Manager
+# Initialize Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -37,21 +33,18 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # 'student', 'teacher', 'parent'
+    role = db.Column(db.String(20), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
     student = db.relationship('Student', backref='user', uselist=False)
     teacher = db.relationship('Teacher', backref='user', uselist=False)
     parent = db.relationship('Parent', backref='user', uselist=False)
     
     def set_password(self, password):
-        """Hash password"""
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     
     def check_password(self, password):
-        """Verify password"""
         return check_password_hash(self.password_hash, password)
 
 class Student(db.Model):
@@ -63,7 +56,6 @@ class Student(db.Model):
     class_name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     
-    # Relationships
     attendances = db.relationship('Attendance', backref='student', lazy=True, cascade='all, delete-orphan')
     progress_records = db.relationship('Progress', backref='student', lazy=True, cascade='all, delete-orphan')
     parent_id = db.Column(db.Integer, db.ForeignKey('parent.id'))
@@ -77,7 +69,6 @@ class Teacher(db.Model):
     subject = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     
-    # Relationships
     attendances = db.relationship('Attendance', backref='teacher', lazy=True, cascade='all, delete-orphan')
     progress_records = db.relationship('Progress', backref='teacher', lazy=True, cascade='all, delete-orphan')
 
@@ -89,7 +80,6 @@ class Parent(db.Model):
     phone_number = db.Column(db.String(15), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     
-    # Relationships
     students = db.relationship('Student', backref='parent_user', lazy=True)
 
 class Attendance(db.Model):
@@ -103,7 +93,7 @@ class Attendance(db.Model):
     marked_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Progress(db.Model):
-    """Student Progress/Marks"""
+    """Student Progress"""
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
@@ -117,7 +107,6 @@ class Progress(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def calculate_percentage(self):
-        """Calculate percentage"""
         if self.total_marks > 0:
             self.percentage = (self.marks_obtained / self.total_marks) * 100
 
@@ -125,13 +114,11 @@ class Progress(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Load user from database"""
     return User.query.get(int(user_id))
 
 # ==================== HELPER FUNCTIONS ====================
 
 def get_attendance_percentage(student_id, days=30):
-    """Get attendance percentage"""
     from_date = datetime.now().date() - timedelta(days=days)
     
     total = Attendance.query.filter(
@@ -151,7 +138,6 @@ def get_attendance_percentage(student_id, days=30):
     return (present / total) * 100
 
 def get_average_marks(student_id, subject=None):
-    """Get average marks"""
     query = Progress.query.filter(Progress.student_id == student_id)
     
     if subject:
@@ -167,11 +153,9 @@ def get_average_marks(student_id, subject=None):
 
 # ==================== ROUTES ====================
 
-# --------- LOGIN & REGISTER ---------
-
+# Login & Register
 @app.route('/', methods=['GET', 'POST'])
 def login():
-    """Login Page"""
     if current_user.is_authenticated:
         if current_user.role == 'student':
             return redirect(url_for('student_dashboard'))
@@ -202,7 +186,6 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Register New User"""
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -231,19 +214,16 @@ def register():
 @app.route('/logout')
 @login_required
 def logout():
-    """Logout User"""
     logout_user()
     flash('✅ You have been logged out', 'info')
     return redirect(url_for('login'))
 
-# --------- STUDENT ROUTES ---------
-
+# Student Routes
 @app.route('/student/dashboard')
 @login_required
 def student_dashboard():
-    """Student Dashboard"""
     if current_user.role != 'student':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     student = Student.query.filter_by(user_id=current_user.id).first()
@@ -270,14 +250,12 @@ def student_dashboard():
                          recent_attendance=recent_attendance,
                          recent_progress=recent_progress)
 
-# --------- PARENT ROUTES ---------
-
+# Parent Routes
 @app.route('/parent/dashboard')
 @login_required
 def parent_dashboard():
-    """Parent Dashboard"""
     if current_user.role != 'parent':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     parent = Parent.query.filter_by(user_id=current_user.id).first()
@@ -304,9 +282,8 @@ def parent_dashboard():
 @app.route('/parent/view-student/<int:student_id>')
 @login_required
 def parent_view_student(student_id):
-    """Parent View Student Details"""
     if current_user.role != 'parent':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     student = Student.query.get(student_id)
@@ -318,7 +295,7 @@ def parent_view_student(student_id):
     parent = Parent.query.filter_by(user_id=current_user.id).first()
     
     if student.parent_id != parent.id:
-        flash('❌ You cannot view this student', 'error')
+        flash('❌ Access denied', 'error')
         return redirect(url_for('parent_dashboard'))
     
     attendance_records = Attendance.query.filter_by(student_id=student_id).order_by(
@@ -339,14 +316,12 @@ def parent_view_student(student_id):
                          attendance_percentage=attendance_percentage,
                          average_marks=average_marks)
 
-# --------- TEACHER ROUTES ---------
-
+# Teacher Routes
 @app.route('/teacher/dashboard')
 @login_required
 def teacher_dashboard():
-    """Teacher Dashboard"""
     if current_user.role != 'teacher':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
@@ -364,9 +339,8 @@ def teacher_dashboard():
 @app.route('/teacher/mark-attendance', methods=['GET', 'POST'])
 @login_required
 def mark_attendance():
-    """Mark Attendance"""
     if current_user.role != 'teacher':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
@@ -400,7 +374,7 @@ def mark_attendance():
                 db.session.add(attendance)
         
         db.session.commit()
-        flash('✅ Attendance marked successfully!', 'success')
+        flash('✅ Attendance marked!', 'success')
         return redirect(url_for('mark_attendance'))
     
     return render_template('attendance.html', students=students)
@@ -408,9 +382,8 @@ def mark_attendance():
 @app.route('/teacher/update-progress', methods=['GET', 'POST'])
 @login_required
 def update_progress():
-    """Update Student Progress"""
     if current_user.role != 'teacher':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
@@ -440,7 +413,7 @@ def update_progress():
         db.session.add(progress)
         db.session.commit()
         
-        flash('✅ Progress updated successfully!', 'success')
+        flash('✅ Progress updated!', 'success')
         return redirect(url_for('update_progress'))
     
     return render_template('progress.html', students=students)
@@ -448,9 +421,8 @@ def update_progress():
 @app.route('/teacher/reports')
 @login_required
 def reports():
-    """Teacher Reports"""
     if current_user.role != 'teacher':
-        flash('❌ Unauthorized access', 'error')
+        flash('❌ Unauthorized', 'error')
         return redirect(url_for('login'))
     
     teacher = Teacher.query.filter_by(user_id=current_user.id).first()
@@ -469,12 +441,10 @@ def reports():
     
     return render_template('reports.html', report_data=report_data)
 
-# --------- API ROUTES (FOR CHARTS) ---------
-
+# API Routes
 @app.route('/api/student-attendance-chart')
 @login_required
 def attendance_chart_data():
-    """Attendance Chart Data"""
     if current_user.role != 'student':
         return jsonify({'error': 'Unauthorized'}), 401
     
@@ -497,7 +467,6 @@ def attendance_chart_data():
 @app.route('/api/progress-marks-chart')
 @login_required
 def progress_chart_data():
-    """Progress Chart Data"""
     if current_user.role != 'student':
         return jsonify({'error': 'Unauthorized'}), 401
     
@@ -515,31 +484,24 @@ def progress_chart_data():
         'data': data
     })
 
-# --------- ERROR HANDLERS ---------
-
+# Error Handlers
 @app.errorhandler(404)
 def not_found(error):
-    """404 Error"""
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
 def server_error(error):
-    """500 Error"""
     db.session.rollback()
     return render_template('500.html'), 500
 
-# --------- INITIALIZE DATABASE ---------
-
+# Database Initialization
 @app.before_request
 def create_tables():
-    """Create database tables"""
     db.create_all()
 
-# --------- ADMIN SETUP ROUTE ---------
-
+# Admin Setup
 @app.route('/admin/setup', methods=['GET', 'POST'])
 def admin_setup():
-    """First-time admin setup"""
     if User.query.first() is not None:
         flash('❌ Setup already completed', 'error')
         return redirect(url_for('login'))
@@ -567,7 +529,7 @@ def admin_setup():
             db.session.add(teacher)
             db.session.commit()
             
-            flash('✅ Admin created! Username: admin, Password: admin123', 'success')
+            flash('✅ Admin created!', 'success')
         
         elif action == 'create_student':
             roll = request.form.get('roll_number')
@@ -626,13 +588,10 @@ def admin_setup():
     
     return render_template('admin_setup.html')
 
-# ==================== RUN APP ====================
-
+# Run App
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print("✅ Database initialized!")
     
-    # For Render, it will use PORT environment variable
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
